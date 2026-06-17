@@ -54,6 +54,7 @@ packages = ["src/robotactuatormdo"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+pythonpath = ["src"]
 
 [tool.ruff]
 src = ["src", "tests"]

@@ -8,7 +8,9 @@ joint requirement schema. Physics backends live in the submodules and are filled
 from __future__ import annotations
 
 from robotactuatormdo.evaluation import evaluate_over_duty_cycle
+from robotactuatormdo.geometry.radial_flux import RadialPMGeometry, size_radial_pm
 from robotactuatormdo.motors.protocols import MotorModel
+from robotactuatormdo.motors.radial_pmsm import RadialPMParameters, RadialPMSM
 from robotactuatormdo.requirements.duty_cycle import DutyCycle
 from robotactuatormdo.requirements.joint import JointRequirement
 from robotactuatormdo.requirements.robot_task import RobotTask
@@ -36,4 +38,8 @@ __all__ = [
     "FeasibilityFlags",
     "MissionResult",
     "evaluate_over_duty_cycle",
+    "RadialPMSM",
+    "RadialPMParameters",
+    "RadialPMGeometry",
+    "size_radial_pm",
 ]

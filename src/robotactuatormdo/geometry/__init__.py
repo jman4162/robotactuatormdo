@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from robotactuatormdo.geometry.radial_flux import RadialPMGeometry, size_radial_pm
 from robotactuatormdo.geometry.shear_stress import (
     area_axial,
     area_radial,
@@ -18,4 +19,6 @@ __all__ = [
     "torque_radial",
     "shear_stress_axial",
     "torque_axial",
+    "RadialPMGeometry",
+    "size_radial_pm",
 ]
