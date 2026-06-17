@@ -19,6 +19,7 @@ __all__ = [
     "MassProperties",
     "TorqueSpeedEnvelope",
     "EfficiencyMap",
+    "MissionResult",
 ]
 
 
@@ -124,3 +125,30 @@ class EfficiencyMap:
     speed_rad_s: np.ndarray
     torque_nm: np.ndarray
     efficiency: np.ndarray
+
+
+@dataclass(frozen=True, slots=True)
+class MissionResult:
+    """Reduction of a motor evaluated over a full duty cycle.
+
+    Currents [A_rms, phase], energies [J], temperatures [°C]. ``points`` holds the per-sample
+    :class:`MotorOperatingResult` detail; the scalars are the mission-level aggregates.
+    """
+
+    rms_phase_current_a: float
+    peak_phase_current_a: float
+    mechanical_energy_j: float
+    electrical_energy_j: float
+    loss_energy_j: float
+    peak_winding_temp_c: float
+    peak_magnet_temp_c: float
+    all_feasible: bool
+    fraction_feasible: float
+    points: tuple[MotorOperatingResult, ...] = ()
+
+    @property
+    def average_efficiency(self) -> float:
+        """Mission energy efficiency: mechanical energy delivered / electrical energy in [0, 1]."""
+        if self.electrical_energy_j <= 0.0:
+            return 0.0
+        return max(0.0, min(1.0, self.mechanical_energy_j / self.electrical_energy_j))

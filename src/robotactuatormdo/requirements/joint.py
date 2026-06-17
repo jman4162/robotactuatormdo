@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import numpy as np
+from robotactuatormdo.requirements.duty_cycle import DutyCycle
 
 __all__ = ["JointRequirement"]
 
@@ -40,9 +40,9 @@ class JointRequirement:
         Ambient temperature for thermal evaluation [°C].
     target_bandwidth_hz:
         Desired output torque bandwidth [Hz]; ``None`` if unconstrained.
-    duty_cycle_time_s / duty_cycle_torque_nm / duty_cycle_speed_rad_s:
-        Optional parallel arrays describing the output duty cycle used for mission-level
-        (RMS current, energy, thermal-recovery) metrics.
+    duty_cycle:
+        Optional output :class:`DutyCycle` used for mission-level (RMS current, energy,
+        thermal-recovery) metrics.
     cooling_available:
         Free-form tag for the available cooling path (e.g. ``"passive"``, ``"forced_air"``,
         ``"liquid_jacket"``); interpreted by the thermal layer.
@@ -60,8 +60,6 @@ class JointRequirement:
     max_mass_kg: float
     ambient_temp_c: float = 25.0
     target_bandwidth_hz: float | None = None
-    duty_cycle_time_s: np.ndarray | None = None
-    duty_cycle_torque_nm: np.ndarray | None = None
-    duty_cycle_speed_rad_s: np.ndarray | None = None
+    duty_cycle: DutyCycle | None = None
     cooling_available: str = "passive"
     production_volume: int | None = None
