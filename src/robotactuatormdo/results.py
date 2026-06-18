@@ -33,6 +33,7 @@ class FeasibilityFlags:
     magnet_temp_ok: bool = True
     saturation_ok: bool = True
     demag_ok: bool = True
+    mechanical_ok: bool = True  # transmission/bearing/structural limits (e.g. gearbox rating)
 
     @property
     def feasible(self) -> bool:
@@ -44,6 +45,7 @@ class FeasibilityFlags:
             and self.magnet_temp_ok
             and self.saturation_ok
             and self.demag_ok
+            and self.mechanical_ok
         )
 
 

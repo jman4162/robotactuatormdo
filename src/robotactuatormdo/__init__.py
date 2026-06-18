@@ -7,6 +7,9 @@ joint requirement schema. Physics backends live in the submodules and are filled
 
 from __future__ import annotations
 
+from robotactuatormdo.actuators.actuator import Actuator, ActuatorProperties
+from robotactuatormdo.actuators.gearbox import Gearbox
+from robotactuatormdo.actuators.qdd import quasi_direct_drive
 from robotactuatormdo.evaluation import evaluate_over_duty_cycle
 from robotactuatormdo.geometry.radial_flux import RadialPMGeometry, size_radial_pm
 from robotactuatormdo.motors.protocols import MotorModel
@@ -42,4 +45,8 @@ __all__ = [
     "RadialPMParameters",
     "RadialPMGeometry",
     "size_radial_pm",
+    "Gearbox",
+    "Actuator",
+    "ActuatorProperties",
+    "quasi_direct_drive",
 ]
