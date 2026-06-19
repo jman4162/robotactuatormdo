@@ -12,6 +12,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+from robotactuatormdo.geometry.process import ROUND_WIRE, WindingProcess
 from robotactuatormdo.materials.copper import Conductor
 from robotactuatormdo.materials.electrical_steel import ElectricalSteel
 from robotactuatormdo.materials.magnets import MagnetMaterial
@@ -58,12 +59,22 @@ def size_radial_pm(
     steel: ElectricalSteel,
     copper: Conductor,
     *,
+    process: WindingProcess = ROUND_WIRE,
     rated_bus_voltage_v: float = 48.0,
-    max_current_density_a_per_mm2: float = 6.0,
+    max_current_density_a_per_mm2: float | None = None,
     winding_temp_limit_c: float = 155.0,
     h_conv_w_m2k: float = 25.0,
 ) -> RadialPMParameters:
-    """Derive lumped PMSM parameters from geometry + materials (first-order)."""
+    """Derive lumped PMSM parameters from geometry + materials (first-order).
+
+    ``process`` (default ``ROUND_WIRE``, a no-op) supplies the achievable current density and an
+    AC-loss multiplier; pass an explicit ``max_current_density_a_per_mm2`` to override it.
+    """
+    j_max_mm2 = (
+        max_current_density_a_per_mm2
+        if max_current_density_a_per_mm2 is not None
+        else process.max_current_density_a_per_mm2
+    )
     r_g = geom.air_gap_radius_m
     l_stk = geom.stack_length_m
     p = geom.pole_pairs
@@ -97,7 +108,7 @@ def size_radial_pm(
     a_cond = (a_cu_total / 3.0) / (2.0 * n_ph)  # one conductor cross-section
     l_end = tau_p
     r_s_20 = copper.resistivity_20_ohm_m * (n_ph * 2.0 * (l_stk + l_end)) / a_cond
-    j_max = max_current_density_a_per_mm2 * 1e6  # A/m^2
+    j_max = j_max_mm2 * 1e6  # A/m^2
     i_max_rms = j_max * a_cond
 
     # --- synchronous inductance (magnetizing + 10% leakage), surface-PM L_d=L_q ---
@@ -167,4 +178,5 @@ def size_radial_pm(
         rotor_inertia_kg_m2=rotor_inertia,
         copper_mass_kg=copper_mass,
         magnet_mass_kg=magnet_mass,
+        ac_loss_multiplier=process.ac_loss_multiplier,
     )

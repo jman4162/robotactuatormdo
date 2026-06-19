@@ -93,7 +93,7 @@ class RadialBLDC:
         r_s = p.r_s_ohm_20
         for _ in range(20):
             r_s = phase_resistance_at(p.r_s_ohm_20, p.copper_temp_coeff_per_c, t_w)
-            p_cu = copper_loss_w(i_rms, r_s)
+            p_cu = copper_loss_w(i_rms, r_s) * p.ac_loss_multiplier
             if net is None:
                 t_w_new = ambient_temp_c + p.r_th_winding_ambient_c_w * (p_cu + q)
             else:
@@ -102,7 +102,7 @@ class RadialBLDC:
                 t_w = t_w_new
                 break
             t_w = t_w_new
-        p_cu = copper_loss_w(i_rms, r_s)
+        p_cu = copper_loss_w(i_rms, r_s) * p.ac_loss_multiplier
         if net is None:
             t_mag = ambient_temp_c + p.r_th_magnet_ambient_c_w * (p_cu + q)
         else:

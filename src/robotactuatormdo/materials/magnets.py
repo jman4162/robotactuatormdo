@@ -24,6 +24,7 @@ class MagnetMaterial:
     max_op_temp_c: float
     density_kg_m3: float
     resistivity_ohm_m: float
+    cost_per_kg: float = 0.0
 
     def br_at(self, temp_c: float) -> float:
         """Remanence [T] at ``temp_c`` (linear reversible model referenced to 20 °C)."""
@@ -39,6 +40,7 @@ NDFEB_N42 = MagnetMaterial(
     max_op_temp_c=80.0,
     density_kg_m3=7500.0,
     resistivity_ohm_m=1.4e-6,
+    cost_per_kg=80.0,  # nominal sintered NdFeB, order-of-magnitude
 )
 
 _REGISTRY: dict[str, MagnetMaterial] = {NDFEB_N42.name: NDFEB_N42}

@@ -25,6 +25,7 @@ class ElectricalSteel:
     alpha: float
     k_eddy: float
     density_kg_m3: float
+    cost_per_kg: float = 0.0
 
 
 # Nominal M250-35A non-grain-oriented lamination.
@@ -35,6 +36,7 @@ M250_35A = ElectricalSteel(
     alpha=1.8,
     k_eddy=8.0e-5,
     density_kg_m3=7650.0,
+    cost_per_kg=3.0,  # nominal NGO lamination, order-of-magnitude
 )
 
 _REGISTRY: dict[str, ElectricalSteel] = {M250_35A.name: M250_35A}

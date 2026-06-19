@@ -107,6 +107,7 @@ class MassProperties:
     magnet_mass_kg: float | None = None
     copper_mass_kg: float | None = None
     iron_mass_kg: float | None = None
+    cost_usd: float | None = None
 
 
 @dataclass(frozen=True, slots=True)

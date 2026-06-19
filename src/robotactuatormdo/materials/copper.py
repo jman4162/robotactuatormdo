@@ -19,6 +19,7 @@ class Conductor:
     resistivity_20_ohm_m: float
     temp_coeff_per_c: float
     density_kg_m3: float
+    cost_per_kg: float = 0.0
 
     def resistivity_at(self, temp_c: float) -> float:
         """Resistivity [Ohm·m] at ``temp_c`` (linear model referenced to 20 °C)."""
@@ -30,6 +31,7 @@ COPPER = Conductor(
     resistivity_20_ohm_m=1.68e-8,
     temp_coeff_per_c=0.00393,
     density_kg_m3=8960.0,
+    cost_per_kg=12.0,  # magnet wire premium over LME copper, order-of-magnitude
 )
 
 _REGISTRY: dict[str, Conductor] = {COPPER.name: COPPER}
