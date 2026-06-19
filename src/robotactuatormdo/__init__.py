@@ -30,6 +30,11 @@ from robotactuatormdo.results import (
     ThermalHistory,
     TorqueSpeedEnvelope,
 )
+from robotactuatormdo.studies.candidate import FactoryCandidate
+from robotactuatormdo.studies.compare_topologies import compare_topologies
+from robotactuatormdo.studies.pareto import pareto_front
+from robotactuatormdo.studies.robust import Uncertainty, robust_score
+from robotactuatormdo.studies.scoring import Objective, score_candidate
 from robotactuatormdo.thermal.duty_cycle import integrate as integrate_thermal
 from robotactuatormdo.thermal.lumped_network import (
     ThermalNetwork,
@@ -69,4 +74,11 @@ __all__ = [
     "single_node_network",
     "radial_pm_network",
     "integrate_thermal",
+    "FactoryCandidate",
+    "Objective",
+    "score_candidate",
+    "pareto_front",
+    "compare_topologies",
+    "Uncertainty",
+    "robust_score",
 ]

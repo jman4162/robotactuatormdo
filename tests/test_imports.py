@@ -22,6 +22,11 @@ def test_public_contract_exported():
         "ThermalNetwork",
         "ThermalHistory",
         "integrate_thermal",
+        "FactoryCandidate",
+        "Objective",
+        "compare_topologies",
+        "pareto_front",
+        "robust_score",
     ]:
         assert hasattr(r, name), name
 
