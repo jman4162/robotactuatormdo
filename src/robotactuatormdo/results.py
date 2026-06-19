@@ -20,6 +20,7 @@ __all__ = [
     "TorqueSpeedEnvelope",
     "EfficiencyMap",
     "MissionResult",
+    "ThermalHistory",
 ]
 
 
@@ -158,3 +159,30 @@ class MissionResult:
         if self.electrical_energy_j <= 0.0:
             return 0.0
         return max(0.0, min(1.0, self.mechanical_energy_j / self.electrical_energy_j))
+
+
+@dataclass(frozen=True, slots=True)
+class ThermalHistory:
+    """Transient node-temperature history over a duty cycle.
+
+    ``node_temps_c`` has shape ``(len(node_names), len(time_s))`` [°C]; rows align with
+    ``node_names`` (free nodes only — boundary temperatures are constant).
+    """
+
+    time_s: np.ndarray
+    node_names: tuple[str, ...]
+    node_temps_c: np.ndarray
+
+    def temps_of(self, name: str) -> np.ndarray:
+        """Temperature trace [°C] for node ``name``."""
+        return self.node_temps_c[self.node_names.index(name)]
+
+    @property
+    def peak_temps_c(self) -> dict[str, float]:
+        """Peak temperature [°C] per node over the timeline."""
+        return {n: float(np.max(self.node_temps_c[i])) for i, n in enumerate(self.node_names)}
+
+    @property
+    def final_temps_c(self) -> dict[str, float]:
+        """Temperature [°C] per node at the end of the timeline."""
+        return {n: float(self.node_temps_c[i, -1]) for i, n in enumerate(self.node_names)}

@@ -35,6 +35,7 @@ from robotactuatormdo.results import (
     MotorOperatingResult,
     TorqueSpeedEnvelope,
 )
+from robotactuatormdo.thermal.lumped_network import ThermalNetwork, solve_steady_state
 
 __all__ = ["RadialPMParameters", "RadialPMSM"]
 
@@ -75,6 +76,8 @@ class RadialPMParameters:
     rotor_inertia_kg_m2: float
     copper_mass_kg: float
     magnet_mass_kg: float
+    # optional multi-node thermal network (None => single-node r_th_* model)
+    thermal_network: ThermalNetwork | None = None
 
     def __post_init__(self) -> None:
         if self.pole_pairs < 1:
@@ -83,6 +86,11 @@ class RadialPMParameters:
                      "max_phase_current_a_rms", "rated_bus_voltage_v", "b_sat_t"):
             if getattr(self, name) <= 0.0:
                 raise ValueError(f"{name} must be positive")
+        if self.thermal_network is not None:
+            free = set(self.thermal_network.free_node_names)
+            missing = {"winding", "magnet"} - free
+            if missing:
+                raise ValueError(f"thermal_network must have free nodes {missing}")
 
     @property
     def max_phase_current_a_pk(self) -> float:
@@ -120,19 +128,26 @@ class RadialPMSM:
         p_core = steinmetz_core_loss_w(
             p.iron_mass_kg, f_e, p.core_b_peak_t, p.k_hyst, p.steinmetz_alpha, p.k_eddy
         )
+        net = p.thermal_network
         t_w = ambient_temp_c
         r_s = p.r_s_ohm_20
         for _ in range(20):
             r_s = phase_resistance_at(p.r_s_ohm_20, p.copper_temp_coeff_per_c, t_w)
             p_cu = copper_loss_w(i_rms, r_s)
-            t_w_new = ambient_temp_c + p.r_th_winding_ambient_c_w * (p_cu + p_core)
+            if net is None:
+                t_w_new = ambient_temp_c + p.r_th_winding_ambient_c_w * (p_cu + p_core)
+            else:
+                t_w_new, _ = _network_temps(net, ambient_temp_c, p_cu, p_core)
             if abs(t_w_new - t_w) < 1e-4:
                 t_w = t_w_new
                 break
             t_w = t_w_new
         p_cu = copper_loss_w(i_rms, r_s)
         p_loss = p_cu + p_core
-        t_mag = ambient_temp_c + p.r_th_magnet_ambient_c_w * p_loss
+        if net is None:
+            t_mag = ambient_temp_c + p.r_th_magnet_ambient_c_w * p_loss
+        else:
+            t_w, t_mag = _network_temps(net, ambient_temp_c, p_cu, p_core)
 
         # Voltage with final R_s.
         v_d = r_s * i_d - w_e * p.l_q_h * i_q
@@ -241,6 +256,27 @@ class RadialPMSM:
             else:
                 hi = mid
         return lo
+
+
+def _network_temps(
+    net: ThermalNetwork, ambient_c: float, p_cu: float, p_core: float
+) -> tuple[float, float]:
+    """Winding and magnet temperatures from a thermal network, referenced to ``ambient_c``.
+
+    Copper loss injects at ``winding``; core loss at ``stator`` if present else ``winding``; the
+    magnet node carries only magnet-eddy loss (zero in this first-order model). The network is
+    linear with a single ambient boundary, so node temperatures shift uniformly with ambient:
+    ``T = ambient_c + (T_solved - T_boundary)``.
+    """
+    free = set(net.free_node_names)
+    core_node = "stator" if "stator" in free else "winding"
+    power = {"winding": p_cu}
+    power[core_node] = power.get(core_node, 0.0) + p_core
+    temps = solve_steady_state(net, power)
+    t_boundary = temps[net.boundary_node_names[0]]
+    t_w = ambient_c + (temps["winding"] - t_boundary)
+    t_mag = ambient_c + (temps["magnet"] - t_boundary)
+    return t_w, t_mag
 
 
 def _field_weakening_id(

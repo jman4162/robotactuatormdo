@@ -27,7 +27,14 @@ from robotactuatormdo.results import (
     MassProperties,
     MissionResult,
     MotorOperatingResult,
+    ThermalHistory,
     TorqueSpeedEnvelope,
+)
+from robotactuatormdo.thermal.duty_cycle import integrate as integrate_thermal
+from robotactuatormdo.thermal.lumped_network import (
+    ThermalNetwork,
+    radial_pm_network,
+    single_node_network,
 )
 
 __version__ = "0.1.0"
@@ -57,4 +64,9 @@ __all__ = [
     "Battery",
     "Cable",
     "PowerStage",
+    "ThermalNetwork",
+    "ThermalHistory",
+    "single_node_network",
+    "radial_pm_network",
+    "integrate_thermal",
 ]

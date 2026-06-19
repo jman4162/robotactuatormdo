@@ -19,6 +19,9 @@ def test_public_contract_exported():
         "TorqueSpeedEnvelope",
         "EfficiencyMap",
         "FeasibilityFlags",
+        "ThermalNetwork",
+        "ThermalHistory",
+        "integrate_thermal",
     ]:
         assert hasattr(r, name), name
 

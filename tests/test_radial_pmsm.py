@@ -124,6 +124,48 @@ def test_efficiency_map_bounds():
     assert np.all((finite >= 0.0) & (finite <= 1.0))
 
 
+def test_single_node_network_reproduces_default_winding_temp():
+    from dataclasses import replace
+
+    from robotactuatormdo.thermal.lumped_network import single_node_network
+
+    p = make_params()
+    base = RadialPMSM(p).evaluate_operating_point(6.0, 10.0, 48.0, 25.0)
+    net = single_node_network(p.r_th_winding_ambient_c_w, p.r_th_magnet_ambient_c_w)
+    netted = RadialPMSM(replace(p, thermal_network=net))
+    res = netted.evaluate_operating_point(6.0, 10.0, 48.0, 25.0)
+    assert res.winding_temp_c == pytest.approx(base.winding_temp_c, rel=1e-4)
+
+
+def test_multi_node_network_orders_temps_and_fixes_magnet():
+    from dataclasses import replace
+
+    from robotactuatormdo.thermal.lumped_network import radial_pm_network
+
+    p = make_params()
+    net = radial_pm_network(
+        r_winding_stator_c_w=0.1, r_stator_ambient_c_w=0.3, r_magnet_ambient_c_w=2.0, ambient_c=25.0
+    )
+    motor = RadialPMSM(replace(p, thermal_network=net))
+    res = motor.evaluate_operating_point(6.0, 10.0, 48.0, 25.0)
+    # Magnet carries only (zero) eddy loss now -> sits at ambient, not driven by copper loss.
+    assert res.magnet_temp_c == pytest.approx(25.0, abs=1e-6)
+    assert res.winding_temp_c > res.magnet_temp_c
+
+
+def test_network_requires_winding_and_magnet_nodes():
+    from dataclasses import replace
+
+    from robotactuatormdo.thermal.lumped_network import ThermalEdge, ThermalNetwork, ThermalNode
+
+    bad = ThermalNetwork(
+        nodes=(ThermalNode("winding", 100.0), ThermalNode("amb", fixed_temp_c=25.0)),
+        edges=(ThermalEdge.from_resistance("winding", "amb", 0.5),),
+    )  # no 'magnet' node
+    with pytest.raises(ValueError):
+        replace(make_params(), thermal_network=bad)
+
+
 def test_vertical_slice_through_reducer():
     geom = RadialPMGeometry(
         air_gap_radius_m=0.045, stack_length_m=0.040, outer_radius_m=0.070,
