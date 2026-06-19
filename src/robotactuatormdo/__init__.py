@@ -10,6 +10,10 @@ from __future__ import annotations
 from robotactuatormdo.actuators.actuator import Actuator, ActuatorProperties
 from robotactuatormdo.actuators.gearbox import Gearbox
 from robotactuatormdo.actuators.qdd import quasi_direct_drive
+from robotactuatormdo.electronics.battery import Battery
+from robotactuatormdo.electronics.cable import Cable
+from robotactuatormdo.electronics.inverter import Inverter
+from robotactuatormdo.electronics.power_stage import PowerStage
 from robotactuatormdo.evaluation import evaluate_over_duty_cycle
 from robotactuatormdo.geometry.radial_flux import RadialPMGeometry, size_radial_pm
 from robotactuatormdo.motors.protocols import MotorModel
@@ -49,4 +53,8 @@ __all__ = [
     "Actuator",
     "ActuatorProperties",
     "quasi_direct_drive",
+    "Inverter",
+    "Battery",
+    "Cable",
+    "PowerStage",
 ]

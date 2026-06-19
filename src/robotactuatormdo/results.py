@@ -34,6 +34,7 @@ class FeasibilityFlags:
     saturation_ok: bool = True
     demag_ok: bool = True
     mechanical_ok: bool = True  # transmission/bearing/structural limits (e.g. gearbox rating)
+    source_ok: bool = True  # power-source limits (battery/cable/inverter current, link collapse)
 
     @property
     def feasible(self) -> bool:
@@ -46,6 +47,7 @@ class FeasibilityFlags:
             and self.saturation_ok
             and self.demag_ok
             and self.mechanical_ok
+            and self.source_ok
         )
 
 
@@ -67,6 +69,7 @@ class MotorOperatingResult:
     mechanical_loss_w: float
     winding_temp_c: float
     magnet_temp_c: float
+    inverter_loss_w: float = 0.0
     feasibility: FeasibilityFlags = field(default_factory=FeasibilityFlags)
 
     @property
@@ -80,6 +83,7 @@ class MotorOperatingResult:
             + self.core_loss_w
             + self.magnet_eddy_loss_w
             + self.mechanical_loss_w
+            + self.inverter_loss_w
         )
 
     @property
