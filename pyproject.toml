@@ -42,7 +42,9 @@ axial = ["axfluxmdo>=0.7"]
 # Optimization extras shared with axfluxmdo's stack.
 opt = ["pymoo>=0.6", "openmdao>=3.30"]
 dev = ["pytest>=8.0", "ruff>=0.6", "mypy>=1.10"]
-all = ["robotactuatormdo[axial,opt,dev]"]
+# Plotting + notebook tooling for the case-study notebook.
+notebook = ["matplotlib>=3.7", "jupyter", "jupytext>=1.16", "nbconvert", "ipykernel"]
+all = ["robotactuatormdo[axial,opt,dev,notebook]"]
 
 [project.urls]
 Homepage = "https://github.com/jman4162/robotactuatormdo"
@@ -60,6 +62,8 @@ pythonpath = ["src"]
 src = ["src", "tests"]
 line-length = 100
 target-version = "py310"
+# Percent-format notebook source + .ipynb use per-cell imports and inline statements by design.
+extend-exclude = ["notebooks/bldc_vs_axial_case_study.py", "*.ipynb"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

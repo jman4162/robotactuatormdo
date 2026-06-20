@@ -73,7 +73,10 @@ print(comp.winners)            # best class per objective axis
 ```
 
 Runnable benchmark scripts live in `examples/` (humanoid knee, quadruped hip, cobot elbow, and a
-Pareto sweep).
+Pareto sweep). A worked **radial BLDC vs axial-flux** design case study — driving the full stack
+with real `axfluxmdo` axial physics and generated figures — is in
+[`notebooks/bldc_vs_axial_case_study.ipynb`](notebooks/bldc_vs_axial_case_study.ipynb)
+(`pip install ".[notebook,axial]"` to run it).
 
 ## Install
 

@@ -71,6 +71,13 @@ def _q(design: Any, quantity: str, *, default: Any = _MISSING) -> Any:
     return default
 
 
+class _AxialShim:
+    """Scalar duck-typed design derived from an axfluxmdo evaluation (or a fake)."""
+
+    def __init__(self, **kw: Any) -> None:
+        self.__dict__.update(kw)
+
+
 class AxFluxMDOAdapter:
     """Wrap an axial-flux design object as a :class:`MotorModel` (duck-typed).
 
@@ -78,6 +85,62 @@ class AxFluxMDOAdapter:
     package is installed (production use); the default ``False`` keeps the adapter testable with a
     fake design and no dependency.
     """
+
+    @classmethod
+    def from_axfluxmdo(
+        cls,
+        design: Any,
+        model: Any,
+        operating_point: Any,
+        *,
+        max_phase_current_a_rms: float,
+        max_speed_rad_s: float,
+        rated_bus_voltage_v: float,
+    ) -> AxFluxMDOAdapter:
+        """Build an adapter from a real axfluxmdo design by evaluating it at a rated point.
+
+        ``model.evaluate(design, operating_point)`` must return a result with ``torque_nm``,
+        ``back_emf_v_rms``, ``mass_kg`` (and optionally ``phase_resistance_ohm``,
+        ``mass_breakdown``). Kept fully duck-typed so a fake model/design/op exercises it without
+        the optional ``axfluxmdo`` dependency. Rotor inertia (which axfluxmdo does not expose) is a
+        first-order disk estimate from rotor mass and radii.
+        """
+        res = model.evaluate(design, operating_point)
+        current = float(operating_point.current_rms)
+        speed_rpm = float(operating_point.speed_rpm)
+        omega_m = speed_rpm * 2.0 * math.pi / 60.0
+
+        kt = res.torque_nm / current
+        ke = res.back_emf_v_rms * _SQRT2 / omega_m if omega_m > 0.0 else 0.0
+        mass = float(res.mass_kg)
+        breakdown = getattr(res, "mass_breakdown", None) or {}
+        rotor_mass = breakdown.get("magnets", 0.0) + breakdown.get("back_iron", 0.0) or 0.5 * mass
+        r_o = float(getattr(design, "outer_radius", 0.0))
+        r_i = float(getattr(design, "inner_radius", 0.0))
+        inertia = 0.5 * rotor_mass * (r_o**2 + r_i**2)
+
+        op_type = type(operating_point)
+
+        def efficiency_at(torque_nm: float, speed_rad_s: float) -> float:
+            op2 = op_type(
+                speed_rpm=abs(speed_rad_s) * 60.0 / (2.0 * math.pi),
+                current_rms=abs(torque_nm) / kt,
+                dc_bus_voltage=rated_bus_voltage_v,
+            )
+            return float(model.evaluate(design, op2).efficiency)
+
+        shim = _AxialShim(
+            kt=kt,
+            ke=ke,
+            r_phase=float(getattr(res, "phase_resistance_ohm", 0.0)),
+            mass_kg=mass,
+            rotor_inertia_kg_m2=inertia,
+            max_phase_current_a_rms=max_phase_current_a_rms,
+            max_speed_rad_s=max_speed_rad_s,
+            rated_bus_voltage_v=rated_bus_voltage_v,
+            efficiency_at=efficiency_at,
+        )
+        return cls(shim)
 
     def __init__(self, design: Any, *, require_axfluxmdo: bool = False):
         if require_axfluxmdo:
